@@ -1,6 +1,7 @@
-﻿using api_dindin.Models;
-using api_dindin.ViewModel;
+﻿using api_dindin.Context;
+using api_dindin.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api_dindin.Controllers
 {
@@ -8,18 +9,18 @@ namespace api_dindin.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
+        private readonly DbConnectionContext _context;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(DbConnectionContext context)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _context = context;
         }
 
         [HttpPost]
-        public IActionResult Add(UserViewModel userViewModel)
+        public IActionResult Post(User user)
         {
-            var user = new User(userViewModel.Name, userViewModel.Email, userViewModel.Password);
-            _userRepository.Add(user);
+            _context.Users.Add(user);
+            _context.SaveChanges();
 
             return Ok();
         }
@@ -27,7 +28,53 @@ namespace api_dindin.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var user = _userRepository.Get();
+            var users = _context.Users.ToList();
+            if (users is null)
+            {
+                return NotFound("Não a usuários.");
+            }
+
+            return Ok(users);
+        }
+
+        [HttpGet("{id:int}")]
+        public IActionResult Get(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.id == id);
+            if (user == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            return Ok(user);
+        }
+
+        [HttpPut("{id:int}")]
+        public IActionResult Put(int id, User user)
+        {
+            if (id != user.id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(user);
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.id == id);
+            //var user = _context.Users.Find(id);
+            if (user == null)
+            {
+                return NotFound("Não encontrado.");
+            }
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
 
             return Ok(user);
         }

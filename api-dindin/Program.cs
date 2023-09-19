@@ -1,5 +1,6 @@
-using api_dindin.Infrastructure;
+using api_dindin.Context;
 using api_dindin.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddTransient<IUserRepository, UserRepository>();
+string pgSqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<DbConnectionContext>(options => options.UseNpgsql(pgSqlConnection));
 
 var app = builder.Build();
 
