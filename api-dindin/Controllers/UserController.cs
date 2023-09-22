@@ -1,8 +1,11 @@
 ﻿using api_dindin.Context;
 using api_dindin.Models;
+using api_dindin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
+using System.Text.RegularExpressions;
 
 namespace api_dindin.Controllers
 {
@@ -11,38 +14,53 @@ namespace api_dindin.Controllers
     public class UserController : ControllerBase
     {
         private readonly DbConnectionContext _context;
+        private readonly CurrentUser _currentUser;
 
-        public UserController(DbConnectionContext context)
+        public UserController(DbConnectionContext context, CurrentUser currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         [HttpPost]
         public IActionResult Post(User user)
         {
+            var validateEmail = _context.Users.FirstOrDefault(e => e.email == user.email);
+            if (validateEmail != null)
+            {
+                return BadRequest("Já existe usuário cadastrado com o e-mail informado.");
+            }
+
+            var expReg = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
+            if (!Regex.IsMatch(user.email, expReg, RegexOptions.IgnoreCase))
+            {
+                return BadRequest("Email inválido");
+            }
+
             _context.Users.Add(user);
             _context.SaveChanges();
 
             return Ok();
         }
 
+        //[Authorize]
+        //[HttpGet]
+        //public IActionResult Get()
+        //{
+        //    var users = _context.Users.ToList();
+        //    if (users is null)
+        //    {
+        //        return NotFound("Não a usuários.");
+        //    }
+
+        //    return Ok(users);
+        //}
+
         [Authorize]
         [HttpGet]
         public IActionResult Get()
         {
-            var users = _context.Users.ToList();
-            if (users is null)
-            {
-                return NotFound("Não a usuários.");
-            }
-
-            return Ok(users);
-        }
-
-        [Authorize]
-        [HttpGet("{id:int}")]
-        public IActionResult Get(int id)
-        {
+            var id = _currentUser.Id;
             var user = _context.Users.FirstOrDefault(u => u.id == id);
             if (user == null)
             {
@@ -66,20 +84,20 @@ namespace api_dindin.Controllers
             return Ok(user);
         }
 
-        [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.id == id);
-            //var user = _context.Users.Find(id);
-            if (user == null)
-            {
-                return NotFound("Não encontrado.");
-            }
+        //[HttpDelete("{id:int}")]
+        //public IActionResult Delete(int id)
+        //{
+        //    var user = _context.Users.FirstOrDefault(u => u.id == id);
+        //    //var user = _context.Users.Find(id);
+        //    if (user == null)
+        //    {
+        //        return NotFound("Não encontrado.");
+        //    }
 
-            _context.Users.Remove(user);
-            _context.SaveChanges();
+        //    _context.Users.Remove(user);
+        //    _context.SaveChanges();
 
-            return Ok(user);
-        }
+        //    return Ok(user);
+        //}
     }
 }

@@ -1,5 +1,6 @@
 using api_dindin;
 using api_dindin.Context;
+using api_dindin.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +74,9 @@ builder.Services.AddCors(options =>
             policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
         });
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentUser>();
 
 var app = builder.Build();
 

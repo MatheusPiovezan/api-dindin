@@ -1,23 +1,37 @@
-﻿using api_dindin.Models;
+﻿using api_dindin.Context;
+using api_dindin.Models;
 using api_dindin.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api_dindin.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/login")]
     public class AuthController : Controller
     {
+        private readonly DbConnectionContext _context;
+
+        public AuthController(DbConnectionContext context)
+        {
+            _context = context;
+        }
+
         [HttpPost]
         public IActionResult Auth(string email, string password)
         {
-            if (email == "matheus@test.com" && password == "123")
+            var user = _context.Users.FirstOrDefault(u => u.email == email);
+            if (user == null)
             {
-                var token = TokenService.GenerateToken(new User("Matheus", "matheus@test.com", "123"));
+                return BadRequest("Usuário inválido.");
+            }
+
+            if (email == user.email && password == user.password)
+            {
+                var token = TokenService.GenerateToken(user);
                 return Ok(token);
             }
 
-            return BadRequest("Email or Password invalid.");
+            return BadRequest("Usuário e/ou senha inválido(s).");
         }
     }
 }
