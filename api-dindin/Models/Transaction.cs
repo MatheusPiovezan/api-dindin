@@ -7,12 +7,22 @@ namespace api_dindin.Models
     public class Transaction
     {
         [Key]
-        public int Id { get; set; }
-        public string Description { get; set; }
-        public double Value { get; set; }
-        public DateTime Date { get; set; }
-        public string Type { get; set; }
-        public int CategoryId { get; set; }
-        public int UserId { get; set; }
+        public int id { get; set; }
+        public string description { get; set; }
+        public double value { get; set; }
+        public DateTime date { get; set; }
+        public string type { get; set; }
+        public int category_id { get; set; }
+        public int user_id { get; set; }
+
+        public Transaction(string description, double value, DateTime date, string type, int category_id, int user_id)
+        {
+            this.description = description;
+            this.value = value;
+            this.date = date;
+            this.type = type;
+            this.category_id = category_id;
+            this.user_id = user_id;
+        }
     }
 }

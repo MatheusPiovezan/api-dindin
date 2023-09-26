@@ -19,7 +19,7 @@
             {
                 Name = claims.First(x => x.Type == "name").Value;
             }
-            if (claims.Any(x => x.Type == "uemail"))
+            if (claims.Any(x => x.Type == "useremail"))
             {
                 Email = claims.First(x => x.Type == "useremail").Value;
             }

@@ -7,12 +7,12 @@ namespace api_dindin.Models
     public class Category
     {
         [Key]
-        public int Id { get; set; }
-        public string Description { get; set; }
+        public int id { get; set; }
+        public string description { get; set; }
 
-        public Category(int id, string description)
+        public Category(string description)
         {
-            Description = description;
+            this.description = description;
         }
     }
 }
