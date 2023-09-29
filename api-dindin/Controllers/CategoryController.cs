@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace api_dindin.Controllers
 {
     [Route("api/category")]
+    [ApiController]
     public class CategoryController : Controller
     {
         private readonly DbConnectionContext _dbConnectionContext;
