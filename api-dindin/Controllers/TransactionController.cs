@@ -3,6 +3,7 @@ using api_dindin.Models;
 using api_dindin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api_dindin.Controllers
 {
@@ -97,6 +98,37 @@ namespace api_dindin.Controllers
             }).FirstOrDefault(t => t.id == transaction.id);
 
             return Ok(searchTransaction);
+        }
+
+        [Authorize]
+        [HttpPut("{id:int}")]
+        public IActionResult Put(int id, Transaction transaction)
+        {
+            if (transaction.id != 0 || transaction.user_id != 0)
+            {
+                return BadRequest();
+            }
+            if (transaction.category_id < 1 || transaction.category_id > 17)
+            {
+                return BadRequest("Categoria não encontrada!");
+            }
+            if (transaction.type != "entry" && transaction.type != "exit")
+            {
+                return BadRequest("Tipo de transação incorreta!");
+            }
+
+            var userId = _currentUser.Id;
+            var searchTransaction = _dbConnectionContext.Transactions.FirstOrDefault(t => t.id == id && t.user_id == userId);
+            if (searchTransaction == null)
+            {
+                return BadRequest("O usuário autenticado não possui acesso a essa transação.");
+            }
+
+            transaction.user_id = userId;
+            _dbConnectionContext.Entry(transaction).State = EntityState.Modified;
+            _dbConnectionContext.SaveChanges();
+
+            return Ok(transaction);
         }
     }
 }
