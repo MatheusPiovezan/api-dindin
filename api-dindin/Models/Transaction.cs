@@ -7,7 +7,7 @@ namespace api_dindin.Models
     public class Transaction
     {
         [Key]
-        public int id { get; private set; }
+        public int id { get; set; }
         public string description { get; set; }
         public double value { get; set; }
         public DateTime date { get; set; }

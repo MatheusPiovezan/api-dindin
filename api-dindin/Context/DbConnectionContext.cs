@@ -10,5 +10,10 @@ namespace api_dindin.Context
         public DbSet<Transaction> Transactions { get; set; }
 
         public DbConnectionContext(DbContextOptions<DbConnectionContext> options) : base(options) { }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
     }
 }

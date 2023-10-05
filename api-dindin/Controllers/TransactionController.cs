@@ -104,6 +104,8 @@ namespace api_dindin.Controllers
         [HttpPut("{id:int}")]
         public IActionResult Put(int id, Transaction transaction)
         {
+            var userId = _currentUser.Id;
+
             if (transaction.id != 0 || transaction.user_id != 0)
             {
                 return BadRequest();
@@ -117,18 +119,18 @@ namespace api_dindin.Controllers
                 return BadRequest("Tipo de transação incorreta!");
             }
 
-            var userId = _currentUser.Id;
-            var searchTransaction = _dbConnectionContext.Transactions.FirstOrDefault(t => t.id == id && t.user_id == userId);
-            if (searchTransaction == null)
+            var searchTransaction = _dbConnectionContext.Transactions.Any(t => t.id == id && t.user_id == userId);
+            if (!searchTransaction)
             {
                 return BadRequest("O usuário autenticado não possui acesso a essa transação.");
             }
 
             transaction.user_id = userId;
+            transaction.id = id;
             _dbConnectionContext.Entry(transaction).State = EntityState.Modified;
             _dbConnectionContext.SaveChanges();
 
-            return Ok(transaction);
+            return Ok();
         }
     }
 }
