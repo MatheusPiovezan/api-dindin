@@ -58,32 +58,35 @@ namespace api_dindin.Controllers
             return Ok(user);
         }
 
-        //[Authorize]
-        //[HttpPut]
-        //public IActionResult Put(User user)
-        //{
-        //    var id = _currentUser.Id;
-        //    var currentUser = _context.Users.FirstOrDefault(u => u.id == id);
-        //    if (currentUser == null)
-        //    {
-        //        return NotFound("Usuário não encontrado.");
-        //    }
+        [Authorize]
+        [HttpPut]
+        public IActionResult Put(User user)
+        {
+            var userId = _currentUser.Id;
 
-        //    var validateEmail = _context.Users.FirstOrDefault(e => e.email == user.email);
-        //    if (validateEmail != null)
-        //    {
-        //        return BadRequest("Já existe usuário cadastrado com o e-mail informado.");
-        //    }
+            var currentUser = _dbConnectionContext.Users.Any(u => u.id == userId);
+            if (!currentUser)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
 
-        //    var expReg = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
-        //    if (!Regex.IsMatch(user.email, expReg, RegexOptions.IgnoreCase))
-        //    {
-        //        return BadRequest("Email inválido");
-        //    }
-        //    user.id = id;
-        //    _context.Entry(user).State = EntityState.Modified;
-        //    _context.SaveChanges();
-        //    return Ok(user);
-        //}
+            var validateEmail = _dbConnectionContext.Users.Any(e => e.email == user.email);
+            if (validateEmail)
+            {
+                return BadRequest("Já existe usuário cadastrado com o e-mail informado.");
+            }
+
+            var expReg = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
+            if (!Regex.IsMatch(user.email, expReg, RegexOptions.IgnoreCase))
+            {
+                return BadRequest("Email inválido");
+            }
+
+            user.id = userId;
+            _dbConnectionContext.Entry(user).State = EntityState.Modified;
+            _dbConnectionContext.SaveChanges();
+
+            return Ok(user);
+        }
     }
 }

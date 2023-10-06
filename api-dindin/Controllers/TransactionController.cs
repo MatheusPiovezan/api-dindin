@@ -132,5 +132,25 @@ namespace api_dindin.Controllers
 
             return Ok();
         }
+
+        [Authorize]
+        [HttpDelete("{id:int}")]
+
+        public IActionResult Delete(int id)
+        {
+            var userId = _currentUser.Id;
+
+            var searchTransaction = _dbConnectionContext.Transactions.FirstOrDefault(t => t.id == id && t.user_id == userId);
+
+            if (searchTransaction is null)
+            {
+                return NotFound("Transação não encontrada.");
+            }
+
+            _dbConnectionContext.Remove(searchTransaction);
+            _dbConnectionContext.SaveChanges();
+
+            return Ok();
+        }
     }
 }
