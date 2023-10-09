@@ -152,5 +152,25 @@ namespace api_dindin.Controllers
 
             return Ok();
         }
+
+        [Route("extract")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult Get2()
+        {
+            var userId = _currentUser.Id;
+
+            var extractTransactionEntry = _dbConnectionContext.Transactions.Where(t => t.type == "entry" && t.user_id == userId).Sum(v => v.value);
+            var extractTransactionExit = _dbConnectionContext.Transactions.Where(t => t.type == "exit" && t.user_id == userId).Sum(v => v.value);
+
+            var extract =
+                new
+                {
+                    entry = extractTransactionEntry,
+                    exit = extractTransactionExit
+                };
+
+            return Ok(extract);
+        }
     }
 }
