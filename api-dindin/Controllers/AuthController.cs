@@ -17,21 +17,33 @@ namespace api_dindin.Controllers
         }
 
         [HttpPost]
-        public IActionResult Auth(string email, string password)
+        public IActionResult Auth(LoginUser user)
         {
-            var user = _context.Users.FirstOrDefault(u => u.email == email);
+            var searchUser = _context.Users.FirstOrDefault(u => u.email == user.email);
             if (user == null)
             {
                 return BadRequest("Usuário inválido.");
             }
 
-            if (email == user.email && password == user.password)
+            if (user.email == searchUser.email && user.password == searchUser.password)
             {
-                var token = TokenService.GenerateToken(user);
-                return Ok(token);
+                var token = TokenService.GenerateToken(searchUser);
+                return Ok(new
+                {
+                    token,
+                    searchUser.id,
+                    searchUser.name,
+                    searchUser.email
+                });
             }
 
             return BadRequest("Usuário e/ou senha inválido(s).");
         }
+    }
+
+    public class LoginUser
+    {
+        public string email { get; set; }
+        public string password { get; set; }
     }
 }
