@@ -71,7 +71,7 @@ namespace api_dindin.Controllers
             }
 
             var validateEmail = _dbConnectionContext.Users.Any(e => e.email == user.email);
-            if (validateEmail)
+            if (validateEmail && _currentUser.Email != user.email)
             {
                 return BadRequest("Já existe usuário cadastrado com o e-mail informado.");
             }
