@@ -22,8 +22,9 @@ namespace api_dindin.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string[]? filter)
         {
+
             var userId = _currentUser.Id;
             var transactions = _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
             {
@@ -37,7 +38,27 @@ namespace api_dindin.Controllers
                 category_name = c.description,
             }).Where(t => t.user_id == userId);
 
-            return Ok(transactions);
+            if (filter.Any())
+            {
+                List<Object> filteredTransactions = new List<Object>();
+
+                foreach (var f in filter)
+                {
+                    foreach (var transaction in transactions)
+                    {
+                        if (transaction.category_name.ToLower() == f.ToLower())
+                        {
+                            filteredTransactions.Add(transaction);
+                        }
+                    }
+                }
+
+                return Ok(filteredTransactions);
+            }
+            else
+            {
+                return Ok(transactions);
+            }
         }
 
         [Authorize]

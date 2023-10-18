@@ -25,7 +25,7 @@ namespace api_dindin.Controllers
                 return BadRequest("Usuário inválido.");
             }
 
-            if (user.email == searchUser.email && user.password == searchUser.password)
+            if (user.email.ToLower() == searchUser.email && user.password == searchUser.password)
             {
                 var token = TokenService.GenerateToken(searchUser);
                 return Ok(new
