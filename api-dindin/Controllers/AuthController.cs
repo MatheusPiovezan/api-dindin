@@ -1,4 +1,5 @@
 ﻿using api_dindin.Context;
+using api_dindin.Helper;
 using api_dindin.Models;
 using api_dindin.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ namespace api_dindin.Controllers
                 return BadRequest("Usuário inválido.");
             }
 
-            if (user.email.ToLower() == searchUser.email && user.password == searchUser.password)
+            if (user.email.ToLower() == searchUser.email && user.password.GenerateHash() == searchUser.password)
             {
                 var token = TokenService.GenerateToken(searchUser);
                 return Ok(new

@@ -37,11 +37,18 @@ namespace api_dindin.Controllers
                 return BadRequest("Email inválido");
             }
 
+            user.SetPasswordHash();
+
             _dbConnectionContext.Users.Add(user);
             _dbConnectionContext.SaveChanges();
 
 
-            return Ok(user);
+            return Ok(new
+            {
+                user.id,
+                user.name,
+                user.email,
+            });
         }
 
         [Authorize]
@@ -55,7 +62,12 @@ namespace api_dindin.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            return Ok(user);
+            return Ok(new
+            {
+                user.id,
+                user.name,
+                user.email,
+            });
         }
 
         [Authorize]
@@ -82,11 +94,14 @@ namespace api_dindin.Controllers
                 return BadRequest("Email inválido");
             }
 
+            user.SetPasswordHash();
+
             user.id = userId;
+
             _dbConnectionContext.Entry(user).State = EntityState.Modified;
             _dbConnectionContext.SaveChanges();
 
-            return Ok(user);
+            return Ok();
         }
     }
 }

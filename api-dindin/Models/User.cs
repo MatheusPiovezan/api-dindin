@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using api_dindin.Helper;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api_dindin.Models
@@ -17,6 +18,11 @@ namespace api_dindin.Models
             this.name = name;
             this.email = email;
             this.password = password;
+        }
+
+        public void SetPasswordHash()
+        {
+            password = password.GenerateHash();
         }
     }
 }
