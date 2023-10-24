@@ -3,6 +3,7 @@ using api_dindin.Helper;
 using api_dindin.Models;
 using api_dindin.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api_dindin.Controllers
 {
@@ -10,17 +11,17 @@ namespace api_dindin.Controllers
     [Route("api/login")]
     public class AuthController : Controller
     {
-        private readonly DbConnectionContext _context;
+        private readonly DbConnectionContext _dbConnectionContext;
 
         public AuthController(DbConnectionContext context)
         {
-            _context = context;
+            _dbConnectionContext = context;
         }
 
         [HttpPost]
-        public IActionResult Auth(LoginUser user)
+        public async Task<IActionResult> Auth(LoginUser user)
         {
-            var searchUser = _context.Users.FirstOrDefault(u => u.email == user.email);
+            var searchUser = await _dbConnectionContext.Users.FirstOrDefaultAsync(u => u.email == user.email);
             if (user == null)
             {
                 return BadRequest("Usuário inválido.");
