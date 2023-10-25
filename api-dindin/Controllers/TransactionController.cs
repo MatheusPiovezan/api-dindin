@@ -22,176 +22,216 @@ namespace api_dindin.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult Get([FromQuery] string[]? filter)
+        public async Task<IActionResult> Get([FromQuery] string[]? filter)
         {
-
-            var userId = _currentUser.Id;
-            var transactions = _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
+            try
             {
-                id = t.id,
-                type = t.type,
-                description = t.description,
-                value = t.value,
-                date = t.date,
-                user_id = t.user_id,
-                category_id = t.category_id,
-                category_name = c.description,
-            }).Where(t => t.user_id == userId);
-
-            if (filter.Any())
-            {
-                List<Object> filteredTransactions = new List<Object>();
-
-                foreach (var f in filter)
+                var userId = _currentUser.Id;
+                var transactions = await _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
                 {
-                    foreach (var transaction in transactions)
+                    id = t.id,
+                    type = t.type,
+                    description = t.description,
+                    value = t.value,
+                    date = t.date,
+                    user_id = t.user_id,
+                    category_id = t.category_id,
+                    category_name = c.description,
+                }).Where(t => t.user_id == userId).ToListAsync();
+
+                if (filter.Any())
+                {
+                    List<Object> filteredTransactions = new List<Object>();
+
+                    foreach (var f in filter)
                     {
-                        if (transaction.category_name.ToLower() == f.ToLower())
+                        foreach (var transaction in transactions)
                         {
-                            filteredTransactions.Add(transaction);
+                            if (transaction.category_name.ToLower() == f.ToLower())
+                            {
+                                filteredTransactions.Add(transaction);
+                            }
                         }
                     }
-                }
 
-                return Ok(filteredTransactions);
+                    return Ok(filteredTransactions);
+                }
+                else
+                {
+                    return Ok(transactions);
+                }
             }
-            else
+            catch (Exception e)
             {
-                return Ok(transactions);
+                return BadRequest(e.Message);
             }
         }
 
         [Authorize]
         [HttpGet("{id:int}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            var userId = _currentUser.Id;
-            var transaction = _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
+            try
             {
-                id = t.id,
-                type = t.type,
-                description = t.description,
-                value = t.value,
-                date = t.date,
-                user_id = t.user_id,
-                category_id = t.category_id,
-                category_name = c.description,
-            }).Where(t => t.id == id && t.user_id == userId);
-            if (!transaction.Any())
-            {
-                return BadRequest("Transação não encontrada.");
-            }
+                var userId = _currentUser.Id;
+                var transaction = await _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
+                {
+                    id = t.id,
+                    type = t.type,
+                    description = t.description,
+                    value = t.value,
+                    date = t.date,
+                    user_id = t.user_id,
+                    category_id = t.category_id,
+                    category_name = c.description,
+                }).Where(t => t.id == id && t.user_id == userId).ToListAsync();
 
-            return Ok(transaction);
+                if (!transaction.Any())
+                {
+                    return BadRequest("Transação não encontrada.");
+                }
+
+                return Ok(transaction);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPost]
-        public IActionResult Post(Transaction transaction)
+        public async Task<IActionResult> Post(Transaction transaction)
         {
-            if (transaction.id != 0 || transaction.user_id != 0)
+            try
             {
-                return BadRequest();
-            }
-            if (transaction.category_id < 1 || transaction.category_id > 17)
-            {
-                return BadRequest("Categoria não encontrada!");
-            }
-            if (transaction.type != "entry" && transaction.type != "exit")
-            {
-                return BadRequest("Tipo de transação incorreta!");
-            }
+                if (transaction.id != 0 || transaction.user_id != 0)
+                {
+                    return BadRequest();
+                }
+                if (transaction.category_id < 1 || transaction.category_id > 17)
+                {
+                    return BadRequest("Categoria não encontrada!");
+                }
+                if (transaction.type != "entry" && transaction.type != "exit")
+                {
+                    return BadRequest("Tipo de transação incorreta!");
+                }
 
-            transaction.user_id = _currentUser.Id;
-            _dbConnectionContext.Transactions.Add(transaction);
-            _dbConnectionContext.SaveChanges();
+                transaction.user_id = _currentUser.Id;
+                _dbConnectionContext.Transactions.Add(transaction);
+                await _dbConnectionContext.SaveChangesAsync();
 
-            var searchTransaction = _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
+                var searchTransaction = await _dbConnectionContext.Transactions.Join(_dbConnectionContext.Categories, t => t.category_id, c => c.id, (t, c) => new
+                {
+                    id = t.id,
+                    type = t.type,
+                    description = t.description,
+                    value = t.value,
+                    date = t.date,
+                    user_id = t.user_id,
+                    category_id = t.category_id,
+                    category_name = c.description,
+                }).FirstOrDefaultAsync(t => t.id == transaction.id);
+
+                return Ok(searchTransaction);
+            }
+            catch (Exception e)
             {
-                id = t.id,
-                type = t.type,
-                description = t.description,
-                value = t.value,
-                date = t.date,
-                user_id = t.user_id,
-                category_id = t.category_id,
-                category_name = c.description,
-            }).FirstOrDefault(t => t.id == transaction.id);
-
-            return Ok(searchTransaction);
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPut("{id:int}")]
-        public IActionResult Put(int id, Transaction transaction)
+        public async Task<IActionResult> Put(int id, Transaction transaction)
         {
-            var userId = _currentUser.Id;
-
-            if (transaction.id != 0 || transaction.user_id != 0)
+            try
             {
-                return BadRequest();
-            }
-            if (transaction.category_id < 1 || transaction.category_id > 17)
-            {
-                return BadRequest("Categoria não encontrada!");
-            }
-            if (transaction.type != "entry" && transaction.type != "exit")
-            {
-                return BadRequest("Tipo de transação incorreta!");
-            }
+                var userId = _currentUser.Id;
 
-            var searchTransaction = _dbConnectionContext.Transactions.Any(t => t.id == id && t.user_id == userId);
-            if (!searchTransaction)
-            {
-                return BadRequest("O usuário autenticado não possui acesso a essa transação.");
+                if (transaction.id != 0 || transaction.user_id != 0)
+                {
+                    return BadRequest();
+                }
+                if (transaction.category_id < 1 || transaction.category_id > 17)
+                {
+                    return BadRequest("Categoria não encontrada!");
+                }
+                if (transaction.type != "entry" && transaction.type != "exit")
+                {
+                    return BadRequest("Tipo de transação incorreta!");
+                }
+
+                var searchTransaction = await _dbConnectionContext.Transactions.AnyAsync(t => t.id == id && t.user_id == userId);
+                if (!searchTransaction)
+                {
+                    return BadRequest("O usuário autenticado não possui acesso a essa transação.");
+                }
+
+                transaction.user_id = userId;
+                transaction.id = id;
+
+                _dbConnectionContext.Entry(transaction).State = EntityState.Modified;
+                await _dbConnectionContext.SaveChangesAsync();
+
+                return Ok();
             }
-
-            transaction.user_id = userId;
-            transaction.id = id;
-            _dbConnectionContext.Entry(transaction).State = EntityState.Modified;
-            _dbConnectionContext.SaveChanges();
-
-            return Ok();
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpDelete("{id:int}")]
-
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var userId = _currentUser.Id;
-
-            var searchTransaction = _dbConnectionContext.Transactions.FirstOrDefault(t => t.id == id && t.user_id == userId);
-
-            if (searchTransaction is null)
+            try
             {
-                return NotFound("Transação não encontrada.");
+                var userId = _currentUser.Id;
+                var searchTransaction = await _dbConnectionContext.Transactions.FirstOrDefaultAsync(t => t.id == id && t.user_id == userId);
+
+                if (searchTransaction is null)
+                {
+                    return NotFound("Transação não encontrada.");
+                }
+
+                _dbConnectionContext.Remove(searchTransaction);
+                await _dbConnectionContext.SaveChangesAsync();
+
+                return Ok();
             }
-
-            _dbConnectionContext.Remove(searchTransaction);
-            _dbConnectionContext.SaveChanges();
-
-            return Ok();
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Route("extract")]
         [Authorize]
         [HttpGet]
-        public IActionResult Get2()
+        public async Task<IActionResult> Get2()
         {
-            var userId = _currentUser.Id;
+            try
+            {
+                var userId = _currentUser.Id;
+                var extractTransactionEntry = await _dbConnectionContext.Transactions.Where(t => t.type == "entry" && t.user_id == userId).SumAsync(v => v.value);
+                var extractTransactionExit = await _dbConnectionContext.Transactions.Where(t => t.type == "exit" && t.user_id == userId).SumAsync(v => v.value);
 
-            var extractTransactionEntry = _dbConnectionContext.Transactions.Where(t => t.type == "entry" && t.user_id == userId).Sum(v => v.value);
-            var extractTransactionExit = _dbConnectionContext.Transactions.Where(t => t.type == "exit" && t.user_id == userId).Sum(v => v.value);
+                var extract =
+                    new
+                    {
+                        entry = extractTransactionEntry,
+                        exit = extractTransactionExit
+                    };
 
-            var extract =
-                new
-                {
-                    entry = extractTransactionEntry,
-                    exit = extractTransactionExit
-                };
-
-            return Ok(extract);
+                return Ok(extract);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            };
         }
     }
 }

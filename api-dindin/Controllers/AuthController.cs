@@ -21,25 +21,32 @@ namespace api_dindin.Controllers
         [HttpPost]
         public async Task<IActionResult> Auth(LoginUser user)
         {
-            var searchUser = await _dbConnectionContext.Users.FirstOrDefaultAsync(u => u.email == user.email);
-            if (user == null)
+            try
             {
-                return BadRequest("Usuário inválido.");
-            }
-
-            if (user.email.ToLower() == searchUser.email && user.password.GenerateHash() == searchUser.password)
-            {
-                var token = TokenService.GenerateToken(searchUser);
-                return Ok(new
+                var searchUser = await _dbConnectionContext.Users.FirstOrDefaultAsync(u => u.email == user.email);
+                if (user == null)
                 {
-                    token,
-                    searchUser.id,
-                    searchUser.name,
-                    searchUser.email
-                });
-            }
+                    return BadRequest("Usuário inválido.");
+                }
 
-            return BadRequest("Usuário e/ou senha inválido(s).");
+                if (user.email.ToLower() == searchUser.email && user.password.GenerateHash() == searchUser.password)
+                {
+                    var token = TokenService.GenerateToken(searchUser);
+                    return Ok(new
+                    {
+                        token,
+                        searchUser.id,
+                        searchUser.name,
+                        searchUser.email
+                    });
+                }
+
+                return BadRequest("Usuário e/ou senha inválido(s).");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 

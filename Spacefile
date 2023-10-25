@@ -1,0 +1,11 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: api-dindin
+    src: .
+    engine: custom
+    run: dotnet run --project ./api-dindin/api-dindin.csproj
+    primary: true
+    public_routes:
+      - /*
+      - /*/*

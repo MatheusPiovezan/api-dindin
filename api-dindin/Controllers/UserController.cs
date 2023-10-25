@@ -52,10 +52,10 @@ namespace api_dindin.Controllers
                     user.email,
                 });
             }
-            catch (Exception)
+            catch (Exception e)
             {
 
-                throw;
+                return BadRequest(e.Message);
             }
         }
 
@@ -79,9 +79,9 @@ namespace api_dindin.Controllers
                     user.email,
                 });
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                return BadRequest(e.Message);
             }
 
         }
@@ -121,10 +121,10 @@ namespace api_dindin.Controllers
 
                 return Ok();
             }
-            catch (Exception)
+            catch (Exception e)
             {
 
-                throw;
+                return BadRequest(e.Message);
             }
         }
     }

@@ -2,6 +2,7 @@
 using api_dindin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api_dindin.Controllers
 {
@@ -19,11 +20,18 @@ namespace api_dindin.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var categories = _dbConnectionContext.Categories.ToList();
+            try
+            {
+                var categories = await _dbConnectionContext.Categories.ToListAsync();
 
-            return Ok(categories);
+                return Ok(categories);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }
